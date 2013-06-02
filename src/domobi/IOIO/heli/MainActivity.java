@@ -58,8 +58,12 @@ public class MainActivity extends IOIOActivity {
 	
 	private Helicopter heli = new Helicopter();
 	private Helicopter test = new Helicopter();
-	//API keys here
+	//API keys here, uncomment for Demo Keys
+	//private apiConfigTemplate config = nre apiConfigTemplate();
+	
+	//Comment out if using demo keys
 	private apiConfig config = new apiConfig();
+	
 	private Pubnub pubnub = config.pubnub;
 	Timer timer = new Timer();
 	
