@@ -9,5 +9,6 @@ API Keys in the apiConfig.java file, to enable working with demo keys, refactor/
 
 TODO:
 
-- Many things for the rep, some github scripts so less of a hack required to get API keys working (see above), better documentation, etc
+- Many things for the repo, some github scripts so less of a hack required to get API keys working (see above), better documentation, etc
+- Rotation Gyro and GPS
 
