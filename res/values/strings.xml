@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources><string name="Left">Left</string>
+<string name="Right">Right</string>
+<string name="Trim">Trim</string>
+<string name="Tail_Up">Tail Up</string>
+<string name="app_name">DroidDrone</string>
+<string name="main_lift_power">Main Lift Power</string>
+<string name="Tail_Down">Tail Down</string>
+</resources>
