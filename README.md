@@ -5,7 +5,8 @@ RC Helicopter piloted by Android and IOIO
 
 API Keys in the apiConfig.java file, to enable working with demo keys, refactor/rename apiConfigTemplate.java to apiConfig.java.
 
-*Note:* This is in super-alpha development. Currently helicopter flies using an as of yet unpublished Web interface. Hopefully future updates will make this forkable.
+*Note:* This is in super-alpha development. Currently helicopter flies using the Web interface in "site" folder.
+Hopefully future updates will make this forkable.
 
 TODO:
 
