@@ -8,7 +8,8 @@ var subkey = 'demo';
 var debugcount = 0;
 
 var box, input, codes;
-
+var circlePosX = 150;
+var circlePosY = 200;
 
 //Helicopter State (Autopilot)
 var set_pitch = 0.01;
@@ -21,36 +22,30 @@ var orientationErrors = {"PitchErr":0,"YawErr":0};
 document.body.addEventListener('touchmove', function(event) {
   event.preventDefault();
   var touch = event.touches[0];
-  if (touch.target == document.getElementById("progressbar") ||
-      touch.target == document.getElementById("indicator_right") ||
-      touch.target == document.getElementById("indicator_left")) {
-    prog(touch.pageX);
-  } else if (touch.target == document.getElementById("pwrprogressbar") ||
-            touch.target == document.getElementById("pwrindicator")) {
-    pwrprog(touch.pageY);
+  if (touch.target == document.getElementById("control_surface")) {
+    prog(touch.pageX,touch.pageY);
   }
 }, false);
+
+document.body.addEventListener('touchend', function(event) {
+  returnCircle();
+}, false);
+
+function returnCircle() {
+  circlePosX = 150;
+  circlePosY = 200;
+}
+
 
 // Rotation Progress Bar Test
 var actualprogress = 0;  // current value
 var maxprogress = 300;
 var minprogress = 150;
 
-function prog(x)
+function prog(x,y)
 {
-  var indicator_right = document.getElementById("indicator_right");
-  var indicator_left = document.getElementById("indicator_left");
-
-  actualprogress = x-5;
-  if(actualprogress >= maxprogress) {actualprogress = maxprogress;}
-  if(actualprogress >= minprogress) {
-    indicator_right.style.width=actualprogress + 'px';
-    indicator_left.style.width=minprogress+'px';
-  } else  {
-    indicator_right.style.width=minprogress+'px';
-    indicator_left.style.width=actualprogress + 'px';
-  }
-  set_yaw = (2*(actualprogress/maxprogress)-1)/2;
+  circlePosX = x;
+  circlePosY = y;
 }
 
 // Main Power Progress Bar Test
@@ -130,6 +125,7 @@ function pass_receive(key) {
 // update last received
 function command_received(text) {
   var command_obj = eval('(' + text + ')');
+  /*
   box.innerHTML = ('PitchError:   '
               +(set_pitch).toFixed(3)
               ).replace( /[<>]/g, '' ) +
@@ -143,6 +139,7 @@ function command_received(text) {
               ).replace( /[<>]/g, '' ) +
             '<br>'
             ;
+            */
 }
 
 function debug_received(text) {
@@ -152,64 +149,7 @@ function debug_received(text) {
 
 // Reconfigure these buttons
 // Fast Button Increase Power
-new FastButton(document.getElementById('increasepwr'), function() {
-  var intext = document.getElementById('increasepwr');
-  var detext = document.getElementById('decreasepwr');
-  if (!fwdon)  {
-    set_pitch = 0.1;
-    intext.style.color = '#993300';
-    detext.style.color = '#999999';
-    fwdon = true;
-    bckon = false;
-  } else  {
-    intext.style.color = '#999999';
-    fwdon = false;
-    set_pitch = 0.01;
-  }
-});
 
-// Fast Button Decrease Power
-new FastButton(document.getElementById('decreasepwr'), function() {
-  var intext = document.getElementById('increasepwr');
-  var detext = document.getElementById('decreasepwr');
-
-  if (!bckon)  {
-    set_pitch = -0.1;
-    detext.style.color = '#993300';
-    intext.style.color = '#999999';
-    bckon = true;
-    fwdon = false;
-  } else  {
-    detext.style.color = '#999999';
-    bckon = false;
-    set_pitch = 0.01;
-  }
-});
-
-// Fast Button Abort
-new FastButton(document.getElementById('abort'), function() {
-  set_mainpwr = 0.0;
-  set_pitch = 0;
-  set_yaw = 0;
-
-  var intext = document.getElementById('increasepwr');
-  var detext = document.getElementById('decreasepwr');
-  var indicator_right = document.getElementById("indicator_right");
-  var indicator_left = document.getElementById("indicator_left");
-  var indicator = document.getElementById("pwrindicator");
-
-  indicator.style.height = '303px';
-  indicator_left.style.width = '150px';
-  indicator_right.style.width = '150px';
-
-  intext.style.color = '#999999';
-  detext.style.color = '#999999';
-
-  bckon = false;
-  fwdon = false;
-
-  sendOrientation();
-});
 
 function pubnub_init()  {
     pubnub = PUBNUB.init({
@@ -257,13 +197,48 @@ new FastButton(document.getElementById('subbutton'), function() {
   document.getElementById('toptext').style.display = 'none';
   document.getElementById('control_frame').style.display = 'inline';
 
-  var canvas = document.getElementById("control_surface");
-  var context = canvas.getContext("2d");
-  context.beginPath(); // Start the path
-  context.arc(230, 90, 50, 0, Math.PI*2, false); // Draw a circle
-  context.closePath(); // Close the path
-  context.fillStyle = "rgb(255, 0, 0)";
-  context.fill(); // Fill the path
+
+  window.requestAnimFrame = (function(callback) {
+        return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+        function(callback) {
+          window.setTimeout(callback, 1000 / 60);
+        };
+      })();
+
+      function animate() {
+        var canvas = document.getElementById('control_surface');
+        var context = canvas.getContext('2d');
+
+        // update
+
+        // clear
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // draw stuff
+        context.beginPath();
+        context.arc(150,
+                    200,
+                    10, 0, Math.PI*2, false); // Draw a circle
+        context.closePath();
+        context.fillStyle = "rgb(50,50,50)";
+        context.fill();
+
+        context.beginPath(); // Start the path
+        context.arc(circlePosX,
+                    circlePosY,
+                    50, 0, Math.PI*2, false); // Draw a circle
+        context.closePath(); // Close the path
+        context.fillStyle = "rgba(153, 51, 0, 0.7)";
+        context.fill(); // Fill the path
+
+
+
+        // request new frame
+        requestAnimFrame(function() {
+          animate();
+        });
+      }
+      animate();
 
 });
 
