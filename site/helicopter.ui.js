@@ -9,6 +9,7 @@ var debugcount = 0;
 
 var box, input, codes;
 
+
 //Helicopter State (Autopilot)
 var set_pitch = 0.01;
 var set_yaw = 0.0;
@@ -254,7 +255,16 @@ new FastButton(document.getElementById('subbutton'), function() {
     console.log('Already Subscribed');
   }
   document.getElementById('toptext').style.display = 'none';
-  document.getElementById('control_surface').style.display = 'inline';
+  document.getElementById('control_frame').style.display = 'inline';
+
+  var canvas = document.getElementById("control_surface");
+  var context = canvas.getContext("2d");
+  context.beginPath(); // Start the path
+  context.arc(230, 90, 50, 0, Math.PI*2, false); // Draw a circle
+  context.closePath(); // Close the path
+  context.fillStyle = "rgb(255, 0, 0)";
+  context.fill(); // Fill the path
+
 });
 
 
