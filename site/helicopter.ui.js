@@ -36,35 +36,11 @@ function returnCircle() {
   circlePosY = 200;
 }
 
-
-// Rotation Progress Bar Test
-var actualprogress = 0;  // current value
-var maxprogress = 300;
-var minprogress = 150;
-
 function prog(x,y)
 {
   circlePosX = x;
   circlePosY = y;
 }
-
-// Main Power Progress Bar Test
-var pwractualprogress = 0;  // current value
-var pwrmaxprogress = 303;
-var pwrminprogress = 0;
-
-function pwrprog(y)
-{
-  var indicator = document.getElementById("pwrindicator");
-
-  pwractualprogress = y-100;
-  if(pwractualprogress >= pwrmaxprogress) {pwractualprogress = pwrmaxprogress;}
-  if(pwractualprogress <= pwrminprogress) {pwractualprogress = pwrminprogress;}
-  indicator.style.height=pwractualprogress+'px';
-  set_mainpwr = 1-pwractualprogress/pwrmaxprogress;
-
-}
-
 
 function sendOrientation() {
 
@@ -199,7 +175,11 @@ new FastButton(document.getElementById('subbutton'), function() {
 
 
   window.requestAnimFrame = (function(callback) {
-        return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+        return window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
         function(callback) {
           window.setTimeout(callback, 1000 / 60);
         };
