@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Helicopter Control!</title>
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="stylesheet.css" type="text/css" charset="utf-8">
+</head>
+<body>
+<div id=container>
+
+    <div id=toptext>
+      <h1>Access Code:</h1>
+      <div><input id=input type="password" /></div>
+      <br>
+      <div><button id=subbutton>Submit</button></div>
+    </div>
+
+    <div id=control_surface>
+
+      <div id=rotation>
+         <div id=progressbar>
+           <div id=indicator_right>
+             <div id=indicator_left></div>
+           </div>
+         </div>
+       </div>
+
+       <div id=lower_part>
+
+         <div id=main_pwr>
+           <div id=pwrprogressbar>
+             <div id=pwrindicator>
+             </div>
+           </div>
+        </div>
+
+        <div id=tail_and_diag>
+          <button id=increasepwr>^</button>
+          <br>
+          <button id=decreasepwr>v</button>
+          <br>
+            <div id=status>
+            <br>
+            <div id=output>
+              <div id=box><br><br><br></div>
+              <div id=codes></div>
+            </div>
+            <br>
+            </div>
+          <br>
+          <button id=abort>Abort</button>
+         </div>
+
+        </div>
+
+     </div>
+
+</div>
+<script src=pubnub.min.js></script>
+<script src=google.fastbutton.js></script>
+<script src=helicopter.ui.js></script>
+</body>
+</html>
+
