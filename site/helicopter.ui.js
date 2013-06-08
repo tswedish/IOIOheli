@@ -10,11 +10,12 @@ var debugcount = 0;
 var box, input, codes;
 var circlePosX = 150;
 var circlePosY = 200;
+var circleWidth = 20;
 
 //Helicopter State (Autopilot)
 var set_pitch = 0.01;
 var set_yaw = 0.0;
-var set_mainpwr = 0.0;
+var set_mainpwr = 10;
 var fwdon = false;
 var bckon = false;
 var orientationErrors = {"PitchErr":0,"YawErr":0};
@@ -23,8 +24,16 @@ document.body.addEventListener('touchmove', function(event) {
   event.preventDefault();
   var touch = event.touches[0];
   if (touch.target == document.getElementById("control_surface")) {
+  if (event.touches.length > 1) {
+  var touch2 = event.touches[1];
+    circleWidth = 0.5*Math.sqrt(Math.pow(Math.abs(touch.pageX - touch2.pageX),2)
+                          + Math.pow(Math.abs(touch.pageY - touch2.pageY),2));
+    prog((touch.pageX+touch2.pageX)/2, (touch.pageY+touch2.pageY)/2);
+  } else {
     prog(touch.pageX,touch.pageY);
   }
+  }
+
 }, false);
 
 document.body.addEventListener('touchend', function(event) {
@@ -116,6 +125,7 @@ function command_received(text) {
             '<br>'
             ;
             */
+  console.log(text);
 }
 
 function debug_received(text) {
@@ -188,13 +198,24 @@ new FastButton(document.getElementById('subbutton'), function() {
         var context = canvas.getContext('2d');
 
         // update
-        set_pitch = circlePosX-150;
-        set_yaw   = circlePosY-200;
+        set_yaw = circlePosX-150;
+        set_pitch   = circlePosY-200;
+        set_mainpwr = circleWidth*0.01;
 
         // clear
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         // draw stuff
+        context.beginPath();
+        context.rect(145, 0, 10, 400);
+        context.fillStyle = "rgb(55,55,55)";
+        context.fill();
+
+        context.beginPath();
+        context.rect(0, 195, 300, 10);
+        context.fillStyle = "rgb(55,55,55)";
+        context.fill();
+
         context.beginPath();
         context.arc(150,
                     200,
@@ -206,7 +227,7 @@ new FastButton(document.getElementById('subbutton'), function() {
         context.beginPath(); // Start the path
         context.arc(circlePosX,
                     circlePosY,
-                    50, 0, Math.PI*2, false); // Draw a circle
+                    circleWidth, 0, Math.PI*2, false); // Draw a circle
         context.closePath(); // Close the path
         context.fillStyle = "rgba(153, 51, 0, 0.7)";
         context.fill(); // Fill the path
