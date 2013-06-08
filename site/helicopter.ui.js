@@ -123,8 +123,6 @@ function debug_received(text) {
   orientationErrors = eval('(' + text + ')');
 }
 
-// Reconfigure these buttons
-// Fast Button Increase Power
 
 
 function pubnub_init()  {
@@ -190,6 +188,8 @@ new FastButton(document.getElementById('subbutton'), function() {
         var context = canvas.getContext('2d');
 
         // update
+        set_pitch = circlePosX-150;
+        set_yaw   = circlePosY-200;
 
         // clear
         context.clearRect(0, 0, canvas.width, canvas.height);
