@@ -11,6 +11,7 @@ var box, input, codes;
 var circlePosX = 150;
 var circlePosY = 200;
 var circleWidth = 20;
+var resetCircle = false;
 
 //Helicopter State (Autopilot)
 var set_pitch = 0.01;
@@ -33,7 +34,7 @@ document.body.addEventListener('touchmove', function(event) {
     prog(touch.pageX,touch.pageY);
   }
   }
-
+  resetCircle = false;
 }, false);
 
 document.body.addEventListener('touchend', function(event) {
@@ -41,8 +42,7 @@ document.body.addEventListener('touchend', function(event) {
 }, false);
 
 function returnCircle() {
-  circlePosX = 150;
-  circlePosY = 200;
+  resetCircle = true;
 }
 
 function prog(x,y)
@@ -225,6 +225,15 @@ new FastButton(document.getElementById('subbutton'), function() {
         context.fill();
 
         context.beginPath(); // Start the path
+        if (resetCircle)  {
+           circlePosX = (circlePosX - 150)*0.85+150;
+           circlePosY = (circlePosY - 200)*0.85+200;
+           if(Math.abs(circlePosX-150) < 2)  {
+              circlePosX = 150;
+              circlePosY = 200;
+              resetCircle = false;
+           }
+        }
         context.arc(circlePosX,
                     circlePosY,
                     circleWidth, 0, Math.PI*2, false); // Draw a circle
