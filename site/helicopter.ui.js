@@ -172,7 +172,7 @@ new FastButton(document.getElementById('subbutton'), function() {
     document.getElementById('input').value = 'Subscribe Attempt Sent';
     setInterval(function(){
        sendOrientation();
-    }, 1000);
+    }, 300);
 
   }
   else  {

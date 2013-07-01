@@ -77,7 +77,7 @@ public class Autopilot {
 		heliModel.setMainPwr(desiredOrientation.mainPwr);
 		// Replace with Gyro
 		heliModel.setRotationPwr(desiredOrientation.getYaw());
-		if (heliModel.getMainPwr() > 0.4f) {
+		if (heliModel.getMainPwr() > 0.2f) {
 			uPt = pitchError;
 
 			uIt = (uIt + pitchError * dt);
@@ -85,7 +85,8 @@ public class Autopilot {
 			uDt = (diffFilterPitch.getNextOutput(pitchError) / dt);
 
 			pitPower = kPt * uPt + kIt * uIt + kDt * uDt;
-			heliModel.setTailPwr(pitPower);
+			//heliModel.setTailPwr(pitPower);
+			heliModel.setTailPwr(desiredOrientation.pitch);
 
 		} else if (heliModel.getMainPwr() > 0.2f) {
 
