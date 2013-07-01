@@ -198,9 +198,10 @@ new FastButton(document.getElementById('subbutton'), function() {
         var context = canvas.getContext('2d');
 
         // update
-        set_yaw = circlePosX-150;
-        set_pitch   = circlePosY-200;
-        set_mainpwr = circleWidth*0.01;
+        set_yaw = (150-circlePosX);
+        set_pitch   = (circlePosY-200)/200;
+        set_mainpwr = circleWidth*0.01-0.4;
+        if (set_mainpwr < 0)  { set_mainpwr = 0; }
 
         // clear
         context.clearRect(0, 0, canvas.width, canvas.height);
@@ -228,7 +229,7 @@ new FastButton(document.getElementById('subbutton'), function() {
         if (resetCircle)  {
            circlePosX = (circlePosX - 150)*0.85+150;
            circlePosY = (circlePosY - 200)*0.85+200;
-           if(Math.abs(circlePosX-150) < 2)  {
+           if(Math.abs(circlePosX-150) < 5)  {
               circlePosX = 150;
               circlePosY = 200;
               resetCircle = false;
