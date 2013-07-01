@@ -11,7 +11,13 @@ var box, input, codes;
 var circlePosX = 150;
 var circlePosY = 200;
 var circleWidth = 20;
+var circleRot = 0;
 var resetCircle = false;
+var newTouch = true;
+
+// UI state
+var lastWidth = 20;
+var lastRot = 0;
 
 //Helicopter State (Autopilot)
 var set_pitch = 0.01;
@@ -26,9 +32,29 @@ document.body.addEventListener('touchmove', function(event) {
   var touch = event.touches[0];
   if (touch.target == document.getElementById("control_surface")) {
   if (event.touches.length > 1) {
-  var touch2 = event.touches[1];
-    circleWidth = 0.5*Math.sqrt(Math.pow(Math.abs(touch.pageX - touch2.pageX),2)
-                          + Math.pow(Math.abs(touch.pageY - touch2.pageY),2));
+    var touch2 = event.touches[1];
+    var currWidth = 0.5*Math.sqrt(Math.pow(Math.abs(touch.pageX
+          - touch2.pageX),2)+ Math.pow(Math.abs(touch.pageY
+          - touch2.pageY),2));
+    var currRot = Math.atan2((touch2.pageY - touch.pageY),
+          (touch.pageX - touch2.pageX));
+
+    if (newTouch)  {
+      lastWidth = currWidth;
+      lastRot = currRot;
+      newTouch = false;
+    }
+
+    circleWidth = circleWidth + (currWidth - lastWidth);
+    if (circleWidth < 10) { circleWidth = 10; }
+
+    circleRot = circleRot - (currRot - lastRot);
+    //if (circleRot < 0) { circleRot = circleRot + Math.PI; }
+
+
+    lastWidth = currWidth;
+    lastRot = currRot;
+
     prog((touch.pageX+touch2.pageX)/2, (touch.pageY+touch2.pageY)/2);
   } else {
     prog(touch.pageX,touch.pageY);
@@ -43,6 +69,7 @@ document.body.addEventListener('touchend', function(event) {
 
 function returnCircle() {
   resetCircle = true;
+  newTouch  = true;
 }
 
 function prog(x,y)
@@ -172,7 +199,7 @@ new FastButton(document.getElementById('subbutton'), function() {
     document.getElementById('input').value = 'Subscribe Attempt Sent';
     setInterval(function(){
        sendOrientation();
-    }, 300);
+    }, 1000);
 
   }
   else  {
@@ -198,9 +225,9 @@ new FastButton(document.getElementById('subbutton'), function() {
         var context = canvas.getContext('2d');
 
         // update
-        set_yaw = (150-circlePosX);
+        set_yaw = (150-circlePosX)-(circleRot%Math.PI*2)*50;
         set_pitch   = (circlePosY-200)/200;
-        set_mainpwr = circleWidth*0.01-0.4;
+        set_mainpwr = circleWidth*0.01-0.1;
         if (set_mainpwr < 0)  { set_mainpwr = 0; }
 
         // clear
@@ -225,6 +252,13 @@ new FastButton(document.getElementById('subbutton'), function() {
         context.fillStyle = "rgb(50,50,50)";
         context.fill();
 
+        // Status Text
+        context.font = '20pt Calibri';
+        context.fillStyle = "rgb(55,55,55)";
+        context.fillText('Yaw: '+set_yaw.toPrecision(4), 5, 50);
+        context.fillText('Pitch: '+set_pitch.toPrecision(4), 5, 75);
+        context.fillText('Pwr: '+set_mainpwr.toPrecision(4), 5, 100);
+
         context.beginPath(); // Start the path
         if (resetCircle)  {
            circlePosX = (circlePosX - 150)*0.85+150;
@@ -241,6 +275,27 @@ new FastButton(document.getElementById('subbutton'), function() {
         context.closePath(); // Close the path
         context.fillStyle = "rgba(153, 51, 0, 0.7)";
         context.fill(); // Fill the path
+
+        var startAngle = circleRot-0.2 - Math.PI/2;
+        var endAngle = circleRot+0.2 - Math.PI/2;
+        var counterClockwise = false;
+
+        /*
+        if (circleRot > 0)  {
+          counterClockwise = true;
+        } else  {
+          counterClockwise = false;
+        }
+        */
+
+        context.beginPath();
+        context.lineWidth = circleWidth*2/3;
+        context.arc(circlePosX, circlePosY, circleWidth-(context.lineWidth/2),
+            startAngle, endAngle, counterClockwise);
+
+        // line color
+        context.strokeStyle = "rgb(10,10,10)";
+        context.stroke();
 
 
 
