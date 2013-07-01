@@ -92,9 +92,9 @@ public class MainActivity extends IOIOActivity {
 				autopilot.setOrientation(setpoint);
 				heli.setConnection(true);
 
-				setNumber(autopilot.getSetPoint().mainPwr, textMainLift_);
-				setNumber(autopilot.getSetPoint().yawVel, textRotationTrim_);
-				setNumber(autopilot.getSetPoint().pitch, textTailTrim_);
+				//setNumber(autopilot.getSetPoint().mainPwr, textMainLift_);
+				//setNumber(autopilot.getSetPoint().yawVel, textRotationTrim_);
+				//setNumber(autopilot.getSetPoint().pitch, textTailTrim_);
 
 				// setNumber(autopilot.getSetPoint().mainPwr, textMainLift_);
 			} catch (Exception e) {
@@ -233,9 +233,9 @@ public class MainActivity extends IOIOActivity {
 			} else {
 				/* Update Helicopter State on GUI */
 				heli = autopilot.getNextState(odom);
-				setNumber(autopilot.rotPower, textMainLift_);
-				setNumber(autopilot.kDr, textRotationTrim_);
-				setNumber(autopilot.getSetPoint().mainPwr, textTailTrim_);
+				setNumber(autopilot.uPr*autopilot.kPr, textMainLift_);
+				setNumber(autopilot.uIr*autopilot.kIr, textRotationTrim_);
+				setNumber(autopilot.uDr*autopilot.kDr, textTailTrim_);
 
 				// autopilot.kDt = (10f*(float)seekMainLift_.getProgress())/
 				// ((float)seekMainLift_.getMax());

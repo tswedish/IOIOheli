@@ -20,7 +20,7 @@ public class Autopilot {
 
 	public float kPt = 0.3f, kIt = 0.001f, kDt = 2.5f;
 	// public float kPr = 0.3f, kIr = 0.0f, kDr = 0.0f;
-	public float kPr = 0.01f, kIr = 0.0f, kDr = 0.5f;
+	public float kPr = 0.001f, kIr = 0.0f, kDr = 0.0f;
 
 	public float uPt = 0, uIt = 0, uDt = 0;
 	public float uPr = 0, uIr = 0, uDr = 0;
