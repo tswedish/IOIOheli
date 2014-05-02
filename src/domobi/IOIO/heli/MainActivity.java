@@ -1,6 +1,8 @@
 package domobi.IOIO.heli;
 
 //import ioio.lib.api.DigitalOutput;
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Hashtable;
@@ -13,8 +15,16 @@ import ioio.lib.api.exception.ConnectionLostException;
 import ioio.lib.util.BaseIOIOLooper;
 import ioio.lib.util.IOIOLooper;
 import ioio.lib.util.android.IOIOActivity;
+import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.hardware.SensorManager;
+import android.media.CamcorderProfile;
+import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.widget.SeekBar;
 import android.widget.ToggleButton;
 import android.widget.TextView;
@@ -30,22 +40,16 @@ import com.pubnub.api.Pubnub;
  * the {@link IOIOActivity} class. For a more advanced use case, see the
  * HelloIOIOPower example.
  */
-public class MainActivity extends IOIOActivity {
-	private ToggleButton toggleMainLift_;
+public class MainActivity extends IOIOActivity implements SurfaceHolder.Callback {
 	private ToggleButton toggleEnableGui_;
-	private TextView textRotationTrim_;
-	private TextView textTailTrim_;
-	private TextView textMainLift_;
-	private SeekBar seekRotationTrim_;
-	private SeekBar seekTailTrim_;
-	private SeekBar seekMainLift_;
-	private Button btnLeft_;
-	private Button btnRight_;
-	private Button btnTailUp_;
-	private Button btnTailDown_;
+	private ToggleButton toggleVideoCapture_;
 
-	// TODO
-	// pubnub javascript/browser interface
+	private TextView statusText_;
+	private TextView errText_;
+	
+	private boolean videoRecording = false;
+	private float cnt = 0;
+
 
 	// Also pubnub updated to interact with Autopilot/AssistedFlyer
 	// (different channels)
@@ -53,17 +57,22 @@ public class MainActivity extends IOIOActivity {
 	// waypoint is Location/State(Land...etc)
 	// AssistedFlyer(Helicopter,Autopilot)
 
-	// Video (capture,streaming);
+	private MediaRecorder mrec;
+	SurfaceHolder holder;
+	SurfaceView cameraView;
+	File video;
+    private Camera mCamera;
 
 	private SensorManager sM;
 	private Odometry odom;
 	private Autopilot autopilot;
+	private Superpilot superpilot;
 	private TwiMaster twi;
 
 	private Helicopter heli = new Helicopter();
-	private Helicopter test = new Helicopter();
+	//private Helicopter test = new Helicopter();
 	// API keys here, uncomment for Demo Keys
-	// private apiConfigTemplate config = nre apiConfigTemplate();
+	// private apiConfigTemplate config = new apiConfigTemplate();
 
 	// Comment out if using demo keys
 	private apiConfig config = new apiConfig();
@@ -88,17 +97,14 @@ public class MainActivity extends IOIOActivity {
 				String Pubchannel = "error_debug";
 				pubnub.publish(Pubchannel, lastError, new Callback() {
 				});
-
-				autopilot.setOrientation(setpoint);
+				
+				heli = superpilot.getHeli(setpoint);
+				//autopilot.setOrientation(setpoint);
 				heli.setConnection(true);
-
-				//setNumber(autopilot.getSetPoint().mainPwr, textMainLift_);
-				//setNumber(autopilot.getSetPoint().yawVel, textRotationTrim_);
-				//setNumber(autopilot.getSetPoint().pitch, textTailTrim_);
 
 				// setNumber(autopilot.getSetPoint().mainPwr, textMainLift_);
 			} catch (Exception e) {
-				setText(e.toString(), textMainLift_);
+				setText(e.toString(), errText_);
 			}
 		}
 
@@ -122,26 +128,26 @@ public class MainActivity extends IOIOActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
 		/* GUI */
+		
+		// Camera
+		mrec = new MediaRecorder();
+	
+		initMediaRecorder();
+		
 		setContentView(R.layout.main);
+		
+		cameraView = (SurfaceView) findViewById(R.id.surfaceView1);
+        holder = cameraView.getHolder();
+        holder.addCallback(this);
+        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		
 		toggleEnableGui_ = (ToggleButton) findViewById(R.id.toggleEnableGui);
+		toggleVideoCapture_ = (ToggleButton) findViewById(R.id.toggleVideoCapture);
 
-		toggleMainLift_ = (ToggleButton) findViewById(R.id.toggleMainLift);
-		textMainLift_ = (TextView) findViewById(R.id.textMainLift);
-		seekMainLift_ = (SeekBar) findViewById(R.id.seekMainLift);
-
-		seekRotationTrim_ = (SeekBar) findViewById(R.id.seekRotationTrim);
-		seekRotationTrim_.setProgress(50);
-		textRotationTrim_ = (TextView) findViewById(R.id.textRotationTrim);
-
-		seekTailTrim_ = (SeekBar) findViewById(R.id.seekTailTrim);
-		seekTailTrim_.setProgress(50);
-		textTailTrim_ = (TextView) findViewById(R.id.textTailTrim);
-
-		btnLeft_ = (Button) findViewById(R.id.btnLeft);
-		btnRight_ = (Button) findViewById(R.id.btnRight);
-		btnTailUp_ = (Button) findViewById(R.id.btnTailUp);
-		btnTailDown_ = (Button) findViewById(R.id.btnTailDown);
+		statusText_ = (TextView) findViewById(R.id.textView1);
+		errText_ = (TextView) findViewById(R.id.textView3);
 
 		/* Pubnub Subscription and Callback */
 		String subChannel = "autopilot_channel";
@@ -151,7 +157,7 @@ public class MainActivity extends IOIOActivity {
 		try {
 			pubnub.subscribe(args, pubnubCallback);
 		} catch (Exception e) {
-			setText("ERROR on Subscribe", textMainLift_);
+			setText("ERROR on Subscribe", errText_);
 		}
 
 		// Pubnub Lost Connection Timer (connection dropped from pubnub
@@ -163,6 +169,7 @@ public class MainActivity extends IOIOActivity {
 		sM = (SensorManager) getSystemService(getBaseContext().SENSOR_SERVICE);
 		odom = new Odometry(sM);
 		autopilot = new Autopilot();
+		superpilot = new Superpilot();
 	}
 
 	/**
@@ -188,8 +195,8 @@ public class MainActivity extends IOIOActivity {
 
 		private float tailMax = 0.6f;
 		private float tailMin = 0.05f;
-		private float mainMax = 0.7f;
-		private float mainMin = 0.05f;
+		private float mainMax = 0.8f;
+		private float mainMin = 0.2f;
 
 		/**
 		 * Called every time a connection with IOIO has been established.
@@ -202,7 +209,16 @@ public class MainActivity extends IOIOActivity {
 		 */
 		@Override
 		protected void setup() throws ConnectionLostException {
-
+			
+			try {
+                mrec.start();
+                videoRecording = true;
+            } catch (Exception e) { 
+            	mrec.stop();
+            	setText(e.getMessage(), statusText_);
+                mrec.release();
+            }
+			
 			pwmTailUp = ioio_.openPwmOutput(14, 100);
 			pwmTailDown = ioio_.openPwmOutput(13, 100);
 			pwmRotor1 = ioio_.openPwmOutput(12, 100);
@@ -225,17 +241,21 @@ public class MainActivity extends IOIOActivity {
 		 */
 		@Override
 		public void loop() throws ConnectionLostException, InterruptedException {
+			
+			if (toggleVideoCapture_.isChecked())	{
+				setText("Releasing Video...",statusText_);
+				mrec.stop();
+				mrec.release();
+			}
 
+			
 			/* Use Gui to Set Helicopter State (if enabled) */
 			if (toggleEnableGui_.isChecked()) {
 				UpdateHelicopterStatefromGui();
 				heli.setConnection(true);
 			} else {
 				/* Update Helicopter State on GUI */
-				heli = autopilot.getNextState(odom);
-				setNumber(autopilot.uPr*autopilot.kPr, textMainLift_);
-				setNumber(autopilot.uIr*autopilot.kIr, textRotationTrim_);
-				setNumber(autopilot.uDr*autopilot.kDr, textTailTrim_);
+				//heli = autopilot.getNextState(odom);
 
 				// autopilot.kDt = (10f*(float)seekMainLift_.getProgress())/
 				// ((float)seekMainLift_.getMax());
@@ -257,41 +277,12 @@ public class MainActivity extends IOIOActivity {
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {
-				// no rest for the wicked
+				//mrec.release();
 			}
 		}
 
 		private void UpdateHelicopterStatefromGui() {
-			if (toggleMainLift_.isChecked()) {
-				heli.setMainPwr(((float) seekMainLift_.getProgress())
-						/ ((float) seekMainLift_.getMax()));
-				setNumber(heli.getMainPwr(), textMainLift_);
-			} else {
-				heli.setMainPwr(0.0f);
-				setNumber(0.0f, textMainLift_);
-			}
-
-			if (btnTailUp_.isPressed() && !btnTailDown_.isPressed()) {
-				heli.setTailPwr(0.5f);
-			} else if (btnTailDown_.isPressed() && !btnTailUp_.isPressed()) {
-				heli.setTailPwr(-0.5f);
-			} else {
-				heli.setTailPwr(0.0f);
-			}
-
-			if (btnLeft_.isPressed() && !btnRight_.isPressed()) {
-				heli.setRotationPwr(0.2f);
-			} else if (btnRight_.isPressed() && !btnLeft_.isPressed()) {
-				heli.setRotationPwr(-0.2f);
-			}
-
-			heli.setTailTrim(((float) seekTailTrim_.getProgress())
-					/ ((float) seekTailTrim_.getMax()) * 2f - 1f);
-			setNumber(heli.getTailTrim(), textTailTrim_);
-
-			heli.setRotationTrim(((float) seekRotationTrim_.getProgress())
-					/ ((float) seekRotationTrim_.getMax()) * 2f - 1f);
-			setNumber(heli.getRotationTrim(), textRotationTrim_);
+			// Does nothing for now
 		}
 
 		private void UpdateIOIOfromHelicopterState(Helicopter helicopter) {
@@ -350,7 +341,30 @@ public class MainActivity extends IOIOActivity {
 		}
 
 	}
-
+	 
+	private void initMediaRecorder(){
+			mrec.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+			mrec.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+	        CamcorderProfile camcorderProfile_HQ = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+	        mrec.setProfile(camcorderProfile_HQ);
+	        mrec.setOutputFile("/sdcard/myvideo.mp4");
+	        //mrec.setMaxDuration(60000); // Set max duration 60 sec.
+	        //mrec.setMaxFileSize(5000000); // Set max file size 5M
+		}
+		
+	private void prepareMediaRecorder(){
+			mrec.setPreviewDisplay(holder.getSurface());
+			try {
+				mrec.prepare();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	
 	/**
 	 * A method to create our IOIO thread.
 	 * 
@@ -378,6 +392,23 @@ public class MainActivity extends IOIOActivity {
 				textBox.setText(str);
 			}
 		});
+	}
+
+	@Override
+	public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void surfaceCreated(SurfaceHolder arg0) {
+		prepareMediaRecorder();
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder arg0) {
+	//	mCamera.stopPreview();
+    //    mCamera.release();	
 	}
 
 }

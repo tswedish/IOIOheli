@@ -9,32 +9,33 @@ android:layout_height="fill_parent">
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Enable"
+        android:text="Enable   Record Video"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
-    <ToggleButton
-        android:id="@+id/toggleEnableGui"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ToggleButton" />
-
-    <TextView
-        android:id="@+id/textView4"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/main_lift_power"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:layout_height="wrap_content" >
 
-    <ToggleButton
-        android:id="@+id/toggleMainLift"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <ToggleButton
+            android:id="@+id/toggleEnableGui"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ToggleButton" />
 
-    <SeekBar
-        android:id="@+id/seekMainLift"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        <ToggleButton
+            android:id="@+id/toggleVideoCapture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ToggleButton" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/textMainLift"
@@ -55,66 +56,17 @@ android:layout_height="fill_parent">
          android:layout_gravity="bottom|center"
          android:orientation="horizontal" >
 
-         <Button
-             android:id="@+id/btnLeft"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:layout_weight="0.5"
-             android:gravity="left"
-             android:text="@string/Left" />
-
-         <Button
-             android:id="@+id/btnRight"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:layout_weight="0.5"
-             android:gravity="right"
-             android:text="@string/Right" />
-
      </LinearLayout>
 
-     <SeekBar
-         android:id="@+id/seekRotationTrim"
+     <SurfaceView
+         android:id="@+id/surfaceView1"
          android:layout_width="match_parent"
-         android:layout_height="wrap_content" />
-
-     <TextView
-         android:id="@+id/textRotationTrim"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:gravity="center"
-         android:text="@string/Trim"
-         android:textAppearance="?android:attr/textAppearanceMedium" />
+         android:layout_height="match_parent" />
 
      <TextView
          android:id="@+id/textView2"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
          android:textAppearance="?android:attr/textAppearanceLarge" />
-
-     <Button
-         android:id="@+id/btnTailUp"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:text="@string/Tail_Up" />
-
-     <Button
-         android:id="@+id/btnTailDown"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:text="@string/Tail_Down" />
-
-     <SeekBar
-         android:id="@+id/seekTailTrim"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content" />
-
-     <TextView
-         android:id="@+id/textTailTrim"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:gravity="center"
-         android:text="@string/Trim"
-         android:textAppearance="?android:attr/textAppearanceMedium" />
 
 </LinearLayout>

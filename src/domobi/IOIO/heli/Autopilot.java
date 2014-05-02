@@ -33,6 +33,7 @@ public class Autopilot {
 		diffFilterPitch = new FIR(sg);
 		diffFilterYaw = new FIR(sg);
 		lastTime = 0;
+		rotPower = 0;
 	}
 
 	public void setOrientation(float pitch, float yaw, float mainPwr) {
@@ -88,7 +89,7 @@ public class Autopilot {
 			//heliModel.setTailPwr(pitPower);
 			heliModel.setTailPwr(desiredOrientation.pitch);
 
-		} else if (heliModel.getMainPwr() > 0.2f) {
+		} else if (heliModel.getMainPwr() > -0.2f) {
 
 			uPr = yawError;
 
@@ -96,12 +97,12 @@ public class Autopilot {
 
 			uDr = (diffFilterYaw.getNextOutput(yawError) / dt);
 
-			rotPower = rotPower + (kPr * uPr + kIr * uIr + kDr * uDr);
-			if (rotPower > 1) {
-				rotPower = 1;
+			rotPower = rotPower + (kPr * uPr); //+ kIr * uIr + kDr * uDr);
+			if (rotPower > 0.5f) {
+				rotPower = 0.5f;
 			}
-			if (rotPower < -1) {
-				rotPower = -1;
+			if (rotPower < -0.5f) {
+				rotPower = -0.5f;
 			}
 			heliModel.setRotationPwr(rotPower);
 		} else {
