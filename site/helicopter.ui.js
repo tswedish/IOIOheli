@@ -225,7 +225,8 @@ new FastButton(document.getElementById('subbutton'), function() {
         var context = canvas.getContext('2d');
 
         // update
-        set_yaw = (150-circlePosX)-(circleRot%Math.PI*2)*50;
+        //set_yaw = (150-circlePosX)/150-(circleRot%Math.PI*2);
+        set_yaw = (150-circlePosX)/150 - (circleRot%(Math.PI/2))/Math.PI;
         set_pitch   = (circlePosY-200)/200;
         set_mainpwr = circleWidth*0.01-0.1;
         if (set_mainpwr < 0)  { set_mainpwr = 0; }
