@@ -46,6 +46,7 @@ public class MainActivity extends IOIOActivity implements SurfaceHolder.Callback
 
 	private TextView statusText_;
 	private TextView errText_;
+	private TextView statText2_; //Add the last error in second box
 	
 	private boolean videoRecording = false;
 	private float cnt = 0;
