@@ -11,6 +11,3 @@ TODO:
 
 - Many things for the repo, some github scripts so less of a hack required to get API keys working (see above), better documentation, etc.
 - GPS
-- Stable PID controllers for autopilot
-- Logging (save to file)
-
