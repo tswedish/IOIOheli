@@ -30,7 +30,7 @@ public class Orientation {
 		this.mainPwr = 0.0f;
 		this.yaw = 0.0f;
 		this.qYaw = new float[2];
-		this.yawVel = 0;
+		this.yawVel = 0.0f;
 		setYaw(this.yaw);
 	}
 

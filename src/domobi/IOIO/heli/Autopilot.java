@@ -18,12 +18,14 @@ public class Autopilot {
 	private FIR diffFilterPitch;
 	private FIR diffFilterYaw;
 
+	private float velMax = 20f;
+	
 	public float kPt = 0.3f, kIt = 0.001f, kDt = 2.5f;
 	// public float kPr = 0.3f, kIr = 0.0f, kDr = 0.0f;
 	public float kPr = 0.001f, kIr = 0.0f, kDr = 0.0f;
 
-	public float uPt = 0, uIt = 0, uDt = 0;
-	public float uPr = 0, uIr = 0, uDr = 0;
+	public float uPt = 0.0f, uIt = 0.0f, uDt = 0.0f;
+	public float uPr = 0.0f, uIr = 0.0f, uDr = 0.0f;
 
 	public Autopilot() {
 		// Savitzky-Golay Derivative
@@ -33,7 +35,7 @@ public class Autopilot {
 		diffFilterPitch = new FIR(sg);
 		diffFilterYaw = new FIR(sg);
 		lastTime = 0;
-		rotPower = 0;
+		rotPower = 0.0f;
 	}
 
 	public void setOrientation(float pitch, float yaw, float mainPwr) {
@@ -45,17 +47,26 @@ public class Autopilot {
 	public void setOrientation(JSONObject setpoint) throws JSONException {
 		double pitch = setpoint.getDouble("pitch");
 		double yaw = setpoint.getDouble("yaw");
-		double mainPwr = 0.5 * setpoint.getDouble("mainPwr");
+		double mainPwr = setpoint.getDouble("mainPwr");
 
 		desiredOrientation.pitch = (float) pitch;
-		desiredOrientation.yawVel = (float) yaw;
+		desiredOrientation.yawVel = (float) yaw * velMax;
 		desiredOrientation.mainPwr = (float) mainPwr;
+		
 	}
 
 	public Orientation getSetPoint() {
 		return desiredOrientation;
 	}
 
+	public float getRotPwr()	{
+		return rotPower;
+	}
+	
+	public float getYawErr()	{
+		return yawError;
+	}
+	
 	public Helicopter getNextState(Odometry odom) {
 		// getControl should be called at some rate.
 		// the values of odom should reflect this
@@ -76,38 +87,24 @@ public class Autopilot {
 		yawError = error.yawVel;
 
 		heliModel.setMainPwr(desiredOrientation.mainPwr);
-		// Replace with Gyro
+		heliModel.setTailPwr(desiredOrientation.pitch);
+		
 		heliModel.setRotationPwr(desiredOrientation.getYaw());
+		
+		// Should be reversed?
+		uPr = -yawError;
+
+		uIr = (uIr + yawError * dt);
+
+		uDr = (diffFilterYaw.getNextOutput(yawError) / dt);
+
+		rotPower = rotPower + (kPr * uPr);// + kIr * uIr + kDr * uDr);
+		if (rotPower > 1)	{ rotPower = 1; }
+		if (rotPower < -1)  { rotPower = -1; }
 		if (heliModel.getMainPwr() > 0.2f) {
-			uPt = pitchError;
-
-			uIt = (uIt + pitchError * dt);
-
-			uDt = (diffFilterPitch.getNextOutput(pitchError) / dt);
-
-			pitPower = kPt * uPt + kIt * uIt + kDt * uDt;
-			//heliModel.setTailPwr(pitPower);
-			heliModel.setTailPwr(desiredOrientation.pitch);
-
-		} else if (heliModel.getMainPwr() > -0.2f) {
-
-			uPr = yawError;
-
-			uIr = (uIr + yawError * dt);
-
-			uDr = (diffFilterYaw.getNextOutput(yawError) / dt);
-
-			rotPower = rotPower + (kPr * uPr); //+ kIr * uIr + kDr * uDr);
-			if (rotPower > 0.5f) {
-				rotPower = 0.5f;
-			}
-			if (rotPower < -0.5f) {
-				rotPower = -0.5f;
-			}
 			heliModel.setRotationPwr(rotPower);
-		} else {
-			heliModel.setTailPwr(0f);
-			// Negative values turn it clockwise
+		} else	{
+			rotPower = 0.0f;
 		}
 
 		return heliModel;

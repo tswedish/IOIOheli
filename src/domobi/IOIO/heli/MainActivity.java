@@ -99,8 +99,8 @@ public class MainActivity extends IOIOActivity implements SurfaceHolder.Callback
 				pubnub.publish(Pubchannel, lastError, new Callback() {
 				});
 				
-				heli = superpilot.getHeli(setpoint);
-				//autopilot.setOrientation(setpoint);
+				//heli = superpilot.getHeli(setpoint);
+				autopilot.setOrientation(setpoint);
 				heli.setConnection(true);
 
 				// setNumber(autopilot.getSetPoint().mainPwr, textMainLift_);
@@ -117,7 +117,7 @@ public class MainActivity extends IOIOActivity implements SurfaceHolder.Callback
 			if (heli.connectionBeat()) {
 				heli.setConnection(false);
 			} else {
-				heli.setMainPwr((float) (heli.getMainPwr() * 0.8));
+				heli.setMainPwr((float) (heli.getMainPwr() * 0.95));
 			}
 		}
 	}
@@ -194,9 +194,9 @@ public class MainActivity extends IOIOActivity implements SurfaceHolder.Callback
 		private float rotor1Pwr;
 		private float rotor2Pwr;
 
-		private float tailMax = 0.6f;
+		private float tailMax = 0.75f;
 		private float tailMin = 0.05f;
-		private float mainMax = 0.8f;
+		private float mainMax = 0.95f;
 		private float mainMin = 0.2f;
 
 		/**
@@ -256,7 +256,8 @@ public class MainActivity extends IOIOActivity implements SurfaceHolder.Callback
 				heli.setConnection(true);
 			} else {
 				/* Update Helicopter State on GUI */
-				//heli = autopilot.getNextState(odom);
+				heli = autopilot.getNextState(odom);
+				setNumber(autopilot.rotPower,statusText_);
 
 				// autopilot.kDt = (10f*(float)seekMainLift_.getProgress())/
 				// ((float)seekMainLift_.getMax());
@@ -300,13 +301,13 @@ public class MainActivity extends IOIOActivity implements SurfaceHolder.Callback
 			if (tailPwrTrimmed < -tailMax) {
 				tailPwrTrimmed = -tailMax;
 			}
-			if (mainRotationTrimmed > mainMax) {
-				mainRotationTrimmed = mainMax;
+			if (mainRotationTrimmed > 1) {
+				mainRotationTrimmed = 1;
 			}
-			if (mainRotationTrimmed < -mainMax) {
-				mainRotationTrimmed = -mainMax;
+			if (mainRotationTrimmed < -1) {
+				mainRotationTrimmed = -1;
 			}
-
+			 
 			/* Tail Logic */
 			if (tailPwrTrimmed >= 0) {
 				tailUpPwr = tailPwrTrimmed;
@@ -317,27 +318,34 @@ public class MainActivity extends IOIOActivity implements SurfaceHolder.Callback
 			}
 
 			/* Main Rotors */
-			if (mainRotationTrimmed >= 0) {
-				rotor1Pwr = helicopter.getMainPwr();
-				rotor2Pwr = helicopter.getMainPwr() * (1 - mainRotationTrimmed);
+			if (helicopter.getMainPwr() > mainMin){
+				float phi = ((float)Math.PI/4) + mainRotationTrimmed*((float)(Math.PI/4));
+				rotor1Pwr = mainMin + (helicopter.getMainPwr()-mainMin)*((float)Math.cos(phi));
+				rotor2Pwr = mainMin + (helicopter.getMainPwr()-mainMin)*((float)Math.sin(phi));
+				 
+				if (rotor1Pwr > mainMax)	{
+					rotor1Pwr = mainMax;
+				}
+				if (rotor1Pwr < mainMin)	{
+					rotor1Pwr = mainMin;
+				}
+				if (rotor2Pwr > mainMax)	{
+					rotor2Pwr = mainMax;
+				}
+				if (rotor2Pwr < mainMin)	{
+					rotor2Pwr = mainMin;
+				}
+			} else {
+				rotor1Pwr = 0.0f;
+				rotor2Pwr = 0.0f;
 			}
-			if (mainRotationTrimmed < 0) {
-				rotor1Pwr = helicopter.getMainPwr() * (1 + mainRotationTrimmed);
-				rotor2Pwr = helicopter.getMainPwr();
-			}
-
+			
 			// Set pwr to zero if below Motor startup friction
 			if (tailUpPwr < tailMin) {
 				tailUpPwr = 0.0f;
 			}
 			if (tailDownPwr < tailMin) {
 				tailDownPwr = 0.0f;
-			}
-			if (rotor1Pwr < mainMin) {
-				rotor1Pwr = 0.0f;
-			}
-			if (rotor2Pwr < mainMin) {
-				rotor2Pwr = 0.0f;
 			}
 		}
 
